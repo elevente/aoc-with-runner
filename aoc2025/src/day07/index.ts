@@ -4,6 +4,7 @@ let input: string[][];
 let coords: string[] = [];
 let splits: string[] = [];
 let splitMulti: number[] = [];
+let allTimelines = 0;
 
 const parseInput = (rawInput: string) => rawInput.split("\n").map(l => l.split(""));
 
@@ -44,35 +45,40 @@ const part1 = (rawInput: string) => {
   return fasz;//splits.length;
 };
 
-const findNextCoord2 = (y: number, x: number) => {
-  if (input.length <= y || x < 0 || input[y].length <= x) {
-    return;
-  }
-  // console.log(y, x);
-  if (input[y][x] === "^") {
-    if (splits.includes(`${y},${x}`)) {
-      splitMulti[y] = splits.length;
+const findNextLevelCoords = (y: number) => {
+  for (let x = 0; x < input[y].length; x++) {
+    if (input[y][x] === "^") {
+      if (input[y - 1][x] !== ".") {
+        input[y][x - 1] = `${input[y][x - 1] === "." ? parseInt(input[y - 1][x], 10) : parseInt(input[y][x - 1], 10) + parseInt(input[y - 1][x], 10)}`;
+        input[y][x + 1] = `${input[y][x + 1] === "." ? parseInt(input[y - 1][x], 10) : parseInt(input[y][x + 1], 10) + parseInt(input[y - 1][x], 10)}`;
+      }
     } else {
-      splits.push(`${y},${x}`);
-      // console.log("SPLIT");
-      findNextCoord2(y, x - 1);
-      findNextCoord2(y, x + 1);
+      if (input[y - 1][x] !== "." && input[y - 1][x] !== "^") {
+        input[y][x] = `${input[y][x] === "." ? parseInt(input[y - 1][x], 10) : parseInt(input[y][x], 10) + parseInt(input[y - 1][x], 10)}`;
+      }
     }
-  } else {
-    input[y][x] = "|";
-    findNextCoord2(y + 1, x);
+  
   }
 }
 
 const part2 = (rawInput: string) => {
   input = parseInput(rawInput);
   const startCoord = input[0].indexOf("S");
-  splits = [];
-  findNextCoord2(0, startCoord);
-  for (const [key, value] of Object.entries(splitMulti)) {
-    console.log(`${key}: ${value}`);
+  input[0][startCoord] = "1";
+  for (let y = 1; y < input.length; y++) {
+    findNextLevelCoords(y);
   }
-  return splits.length + 1;
+  let timelines = 0;
+  const lastLine = input.length - 1;
+  for (let x = 0; x < input[lastLine].length; x++) {
+    if (input[lastLine][x] !== ".") {
+      timelines += parseInt(input[lastLine][x], 10);
+    }
+  }
+  for (const line of input) {
+    console.log(line.join(""));
+  }
+  return timelines;
 };
 
 run({
